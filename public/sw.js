@@ -3,73 +3,47 @@
  * Stratégie : Cache First pour les assets statiques, Network First pour les API
  */
 
-const CACHE_NAME    = 'fred-vtc-v1';
-const CACHE_OFFLINE = 'fred-vtc-offline-v1';
+const CACHE_NAME    = 'fred-vtc-v2';
+const CACHE_OFFLINE = 'fred-vtc-offline-v2';
 
-// Assets à mettre en cache immédiatement à l'installation
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  // Fonts Google (elles seront cachées à la première visite)
 ];
 
-// URLs qui ne doivent JAMAIS être cachées (APIs dynamiques)
 const NEVER_CACHE = [
   'api-adresse.data.gouv.fr',
-  'router.project-osrm.org',
 ];
 
-// ── INSTALLATION ──
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting()) // Active immédiatement le nouveau SW
+      .then(() => self.skipWaiting())
   );
 });
 
-// ── ACTIVATION ──
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
         keys
           .filter(key => key !== CACHE_NAME && key !== CACHE_OFFLINE)
-          .map(key => caches.delete(key)) // Purge les anciens caches
+          .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
   );
 });
 
-// ── FETCH ──
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ne jamais intercepter les appels API/fonctions
-  if (NEVER_CACHE.some(u => request.url.includes(u))) {
-    return; // Laisse passer sans interception
-  }
-
-  // Ne gérer que GET
+  if (NEVER_CACHE.some(u => request.url.includes(u))) return;
   if (request.method !== 'GET') return;
 
-  // Tuiles cartographiques : cache agressif (elles changent rarement)
-  if (url.hostname.includes('cartocdn.com') || url.hostname.includes('tile.openstreetmap')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async cache => {
-        const cached = await cache.match(request);
-        if (cached) return cached;
-        const fresh = await fetch(request);
-        if (fresh.ok) cache.put(request, fresh.clone());
-        return fresh;
-      })
-    );
-    return;
-  }
-
-  // Fonts Google : cache first
+  // Google Fonts: cache first
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async cache => {
@@ -83,21 +57,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Leaflet CDN
-  if (url.hostname.includes('cdnjs.cloudflare.com')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async cache => {
-        const cached = await cache.match(request);
-        if (cached) return cached;
-        const fresh = await fetch(request);
-        if (fresh.ok) cache.put(request, fresh.clone());
-        return fresh;
-      })
-    );
-    return;
-  }
-
-  // App shell (index.html + assets locaux) : Network First avec fallback cache
+  // App shell: Network First with cache fallback
   event.respondWith(
     fetch(request)
       .then(response => {
@@ -108,16 +68,13 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(async () => {
-        // Offline : retourner depuis le cache
         const cached = await caches.match(request);
         if (cached) return cached;
-        // Fallback ultime : page principale
         return caches.match('/index.html');
       })
   );
 });
 
-// ── MESSAGE : forcer la mise à jour ──
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
