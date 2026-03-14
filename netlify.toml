@@ -1,5 +1,6 @@
 [build]
   publish   = "public"
+  command   = "PHONE=$(echo \"$OWNER_PHONE_NUMBER\" | sed 's/+//g') && sed -i \"s/__OWNER_PHONE__/$PHONE/g\" public/index.html"
 
 [[redirects]]
   from   = "/*"

@@ -21,11 +21,11 @@
 
   <!-- SEO -->
   <meta name="description" content="Chauffeur privé VTC à Toulouse. Estimez votre trajet, réservez sur créneaux."/>
-  <meta property="og:title" content="Fred Traversfti — Chauffeur Privé Toulouse"/>
+  <meta property="og:title" content="Fred Traverse — Chauffeur Privé Toulouse"/>
   <meta property="og:type" content="website"/>
-  <title>Fred Traversfti — Chauffeur Privé Toulouse</title>
+  <title>Fred Traverse — Chauffeur Privé Toulouse</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet"/>
   <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
@@ -84,7 +84,7 @@
     body {
       background: var(--bg);
       color: var(--white);
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -126,6 +126,7 @@
       border: 1px solid var(--border);
       position: relative;
       overflow: hidden;
+      text-align: center;
       animation: riseIn 0.8s cubic-bezier(.16,1,.3,1) both;
     }
     .hero::before {
@@ -137,32 +138,20 @@
       background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
     }
 
-    .hero-eyebrow {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 32px;
-    }
-    .hero-eyebrow-line {
-      height: 1px; width: 28px;
-      background: linear-gradient(90deg, var(--gold), transparent);
-    }
-    .hero-eyebrow span {
-      font-size: 10px; font-weight: 500;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--gold);
-    }
-
     .hero-name {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(44px, 11vw, 64px);
-      font-weight: 400; line-height: 0.95;
-      letter-spacing: -0.02em; margin-bottom: 20px;
+      font-size: clamp(36px, 10vw, 56px);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
     }
-    .hero-name em { font-style: italic; color: var(--gold); display: block; }
 
     .hero-tagline {
-      font-size: 12px; font-weight: 300;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 40px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px; font-weight: 400;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 40px;
     }
 
     .badge {
@@ -200,7 +189,7 @@
 
     .btn {
       display: flex; align-items: center;
-      text-decoration: none;
+      text-decoration: none; text-align: left;
       border: 1px solid var(--border2);
       background: var(--surface2);
       overflow: hidden;
@@ -278,7 +267,7 @@
       background: var(--surface2);
       border: 1px solid var(--border2);
       color: var(--white);
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 15px; font-weight: 300;
       outline: none;
       transition: border-color 0.2s, background 0.2s;
@@ -323,7 +312,7 @@
       display: flex; align-items: center; gap: 5px;
       background: none; border: 1px solid var(--border2);
       color: var(--muted); cursor: pointer;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 9px; font-weight: 500;
       letter-spacing: 0.1em; text-transform: uppercase;
       padding: 4px 8px;
@@ -339,7 +328,7 @@
       width: 100%; padding: 18px; margin-top: 20px;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
       border: none; cursor: pointer;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 11px; font-weight: 600;
       letter-spacing: 0.22em; text-transform: uppercase;
       color: #1a1100;
@@ -403,7 +392,7 @@
     }
     .price-amount sup {
       font-size: 20px; vertical-align: super;
-      font-family: 'Outfit', sans-serif; font-weight: 300;
+      font-family: 'Montserrat', sans-serif; font-weight: 300;
     }
     .result-disclaimer {
       font-size: 9px; font-weight: 300; color: var(--muted);
@@ -461,7 +450,7 @@
       background: var(--surface2);
       border: 1px solid var(--border2);
       color: var(--white);
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 14px; font-weight: 300;
       outline: none;
       transition: border-color 0.2s, background 0.2s;
@@ -627,7 +616,7 @@
       letter-spacing: 0.05em; line-height: 1.6;
     }
 
-    .wa-field { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .wa-field { display: flex; flex-direction: column; gap: 6px; flex: 1; position: relative; }
     .wa-field label {
       font-size: 9px; font-weight: 500;
       letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
@@ -635,7 +624,7 @@
     .wa-field input, .wa-field select {
       width: 100%; padding: 13px 14px;
       background: var(--surface2); border: 1px solid var(--border2);
-      color: var(--white); font-family: 'Outfit', sans-serif;
+      color: var(--white); font-family: 'Montserrat', sans-serif;
       font-size: 14px; font-weight: 300; outline: none;
       transition: border-color 0.2s;
       -webkit-appearance: none; color-scheme: dark;
@@ -655,7 +644,7 @@
       padding: 14px 16px;
       font-size: 12px; line-height: 1.8;
       color: rgba(226,232,240,0.8);
-      font-family: 'Outfit', sans-serif; font-weight: 300;
+      font-family: 'Montserrat', sans-serif; font-weight: 300;
       white-space: pre-wrap;
       display: none;
     }
@@ -664,7 +653,7 @@
     .wa-send-btn {
       width: 100%; padding: 18px;
       background: #25d366; border: none; cursor: pointer;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 13px; font-weight: 600;
       letter-spacing: 0.1em; color: #fff;
       display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -697,7 +686,7 @@
     .ac-item {
       padding: 13px 16px;
       font-size: 13px; font-weight: 300;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       color: var(--white);
       cursor: pointer;
       border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -728,15 +717,8 @@
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hero-eyebrow">
-      <div class="hero-eyebrow-line"></div>
-      <span>Chauffeur privé · Toulouse</span>
-    </div>
-    <h1 class="hero-name">
-      Fred
-      <em>Traversfti</em>
-    </h1>
-    <p class="hero-tagline">VTC Indépendant · Occitanie</p>
+    <h1 class="hero-name">Fred Traverse</h1>
+    <p class="hero-tagline">Chauffeur Privé</p>
     <div class="badge">
       <div class="badge-dot"></div>
       <span>Réservation sur créneaux</span>
@@ -747,7 +729,7 @@
   <div class="contact-section" id="contact">
     <div class="contact-label">Me contacter directement</div>
     <div class="btns">
-      <a class="btn" href="tel:+33607843493">
+      <a class="btn" href="tel:+__OWNER_PHONE__">
         <div class="btn-accent"></div>
         <div class="btn-body">
           <div class="btn-icon">📞</div>
@@ -903,7 +885,7 @@
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    const wrap = input.closest('.input-wrap');
+    const wrap = input.closest('.input-wrap') || input.parentElement;
     if (!wrap) return;
 
     const list = document.createElement('div');
@@ -979,8 +961,10 @@
   setupAutocomplete('from');
   setupAutocomplete('to');
 
-  // WhatsApp modal: live preview listeners (deferred because WA inputs are later in the DOM)
+  // WhatsApp modal: autocomplete + live preview (deferred because WA inputs are later in the DOM)
   document.addEventListener('DOMContentLoaded', function () {
+    setupAutocomplete('wa-from');
+    setupAutocomplete('wa-to');
     ['wa-from','wa-to','wa-date','wa-time','wa-passengers','wa-luggage'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.addEventListener('input', updatePreview); el.addEventListener('change', updatePreview); }
@@ -1134,8 +1118,8 @@
       });
     } else {
       embed.innerHTML = `<div style="padding:40px 28px;text-align:center;">
-        <p style="font-family:'Outfit',sans-serif;font-size:13px;color:var(--muted);margin-bottom:20px;">Chargement du calendrier...</p>
-        <a href="${CALENDLY_URL}" target="_blank" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1100;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">
+        <p style="font-family:'Montserrat',sans-serif;font-size:13px;color:var(--muted);margin-bottom:20px;">Chargement du calendrier...</p>
+        <a href="${CALENDLY_URL}" target="_blank" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1100;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">
           Ouvrir Calendly →
         </a>
       </div>`;
@@ -1222,7 +1206,7 @@
   }
 
   // ── WHATSAPP MODAL ──
-  const FRED_WA = '33607843493';
+  const FRED_WA = '__OWNER_PHONE__';
 
   function openWAModal() {
     // Pré-remplir depuis les champs du calculateur si remplis
@@ -1365,10 +1349,10 @@
   function showInstallBanner() {
     const b = document.createElement('div');
     b.id = 'install-banner';
-    b.innerHTML = `<div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:min(90vw,400px);z-index:10000;background:var(--surface);border:1px solid var(--gold);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-family:'Outfit',sans-serif;animation:riseIn 0.5s cubic-bezier(.16,1,.3,1) both">
+    b.innerHTML = `<div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:min(90vw,400px);z-index:10000;background:var(--surface);border:1px solid var(--gold);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-family:'Montserrat',sans-serif;animation:riseIn 0.5s cubic-bezier(.16,1,.3,1) both">
       <span style="font-size:24px">📱</span>
       <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:2px">Installer l'app</div><div style="font-size:10px;color:var(--muted);letter-spacing:0.08em">Accès rapide depuis votre écran d'accueil</div></div>
-      <button onclick="installPWA()" style="padding:10px 16px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#1a1100">Installer</button>
+      <button onclick="installPWA()" style="padding:10px 16px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#1a1100">Installer</button>
       <button onclick="dismissInstall()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;line-height:1">✕</button>
     </div>`;
     document.body.appendChild(b);
@@ -1389,10 +1373,10 @@
 
   function showUpdateBanner() {
     const b = document.createElement('div');
-    b.innerHTML = `<div style="position:fixed;top:16px;left:50%;transform:translateX(-50%);width:min(90vw,360px);z-index:10000;background:var(--surface);border:1px solid var(--gold);padding:14px 18px;display:flex;align-items:center;gap:12px;font-family:'Outfit',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    b.innerHTML = `<div style="position:fixed;top:16px;left:50%;transform:translateX(-50%);width:min(90vw,360px);z-index:10000;background:var(--surface);border:1px solid var(--gold);padding:14px 18px;display:flex;align-items:center;gap:12px;font-family:'Montserrat',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
       <span>🔄</span>
       <div style="flex:1;font-size:12px;color:var(--white)">Mise à jour disponible</div>
-      <button onclick="location.reload()" style="padding:8px 14px;background:var(--gold);border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#1a1100">Recharger</button>
+      <button onclick="location.reload()" style="padding:8px 14px;background:var(--gold);border:none;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#1a1100">Recharger</button>
     </div>`;
     document.body.appendChild(b);
   }
