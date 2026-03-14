@@ -1,0 +1,31 @@
+{
+  "name": "Fred Traverse — Chauffeur Privé Toulouse",
+  "short_name": "Fred VTC",
+  "description": "Réservez votre chauffeur privé à Toulouse",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0c0e",
+  "theme_color": "#c9a96e",
+  "lang": "fr",
+  "scope": "/",
+  "categories": ["travel", "transportation"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Estimer un trajet",
+      "short_name": "Trajet",
+      "url": "/#calculator",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Contacter Fred",
+      "short_name": "Contact",
+      "url": "/#contact",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

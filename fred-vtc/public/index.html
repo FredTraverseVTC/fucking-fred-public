@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#c9a96e" media="(prefers-color-scheme: dark)"/>
+  <meta name="theme-color" content="#a07830" media="(prefers-color-scheme: light)"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Fred VTC"/>
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png"/>
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png"/>
+  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png"/>
+  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png"/>
+
+  <!-- SEO -->
+  <meta name="description" content="Chauffeur privé VTC à Toulouse. Estimez votre trajet, réservez sur créneaux."/>
+  <meta property="og:title" content="Fred Traversfti — Chauffeur Privé Toulouse"/>
+  <meta property="og:type" content="website"/>
+  <title>Fred Traversfti — Chauffeur Privé Toulouse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet"/>
+  <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0c0c0e;
+      --surface:  #13131a;
+      --surface2: #1a1a24;
+      --gold:     #c9a96e;
+      --gold2:    #e8c98a;
+      --white:    #f0eee8;
+      --muted:    #6b6b7a;
+      --border:   rgba(201,169,110,0.18);
+      --border2:  rgba(255,255,255,0.07);
+      --red:      #e05252;
+    }
+
+    :root.light {
+      --bg:       #f2efe8;
+      --surface:  #ffffff;
+      --surface2: #f7f5f0;
+      --gold:     #a07830;
+      --gold2:    #c4983e;
+      --white:    #1a1a1a;
+      --muted:    #888880;
+      --border:   rgba(160,120,48,0.22);
+      --border2:  rgba(0,0,0,0.08);
+      --red:      #c0392b;
+    }
+
+    /* THEME TOGGLE */
+    .theme-toggle {
+      position: fixed; top: 18px; right: 20px; z-index: 1000;
+      width: 44px; height: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s;
+      display: flex; align-items: center; padding: 3px;
+    }
+    .theme-toggle-knob {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--gold);
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), background 0.3s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px;
+    }
+    :root.light .theme-toggle-knob { transform: translateX(20px); }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: 0.6;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30vh; left: 50%;
+      transform: translateX(-50%);
+      width: 80vw; height: 60vh;
+      background: radial-gradient(ellipse, rgba(201,169,110,0.06) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    :root.light body::before { opacity: 0.2; }
+    :root.light body::after {
+      background: radial-gradient(ellipse, rgba(160,120,48,0.07) 0%, transparent 70%);
+    }
+
+    .page {
+      position: relative; z-index: 1;
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+
+    /* HERO */
+    .hero {
+      padding: 56px 36px 48px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      animation: riseIn 0.8s cubic-bezier(.16,1,.3,1) both;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
+    }
+
+    .hero-eyebrow {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 32px;
+    }
+    .hero-eyebrow-line {
+      height: 1px; width: 28px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .hero-eyebrow span {
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(44px, 11vw, 64px);
+      font-weight: 400; line-height: 0.95;
+      letter-spacing: -0.02em; margin-bottom: 20px;
+    }
+    .hero-name em { font-style: italic; color: var(--gold); display: block; }
+
+    .hero-tagline {
+      font-size: 12px; font-weight: 300;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 40px;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      background: rgba(201,169,110,0.04);
+    }
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px rgba(201,169,110,0.5);
+      animation: breathe 2.5s ease-in-out infinite;
+    }
+    .badge span {
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* CONTACT */
+    .contact-section {
+      padding: 0 36px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border); border-top: none;
+      animation: riseIn 0.9s cubic-bezier(.16,1,.3,1) both;
+      animation-delay: 0.05s;
+    }
+    .contact-label {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px; padding-top: 32px;
+    }
+    .btns { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn {
+      display: flex; align-items: center;
+      text-decoration: none;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.15s;
+    }
+    .btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0) scale(0.99); }
+
+    .btn-accent {
+      width: 4px; flex-shrink: 0; align-self: stretch;
+      background: linear-gradient(180deg, var(--gold), var(--gold2));
+      transition: width 0.25s;
+    }
+    .btn:hover .btn-accent { width: 6px; }
+
+    .btn-body {
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px; flex: 1;
+    }
+    .btn-icon { font-size: 20px; line-height: 1; }
+    .btn-label { display: block; font-size: 15px; font-weight: 500; color: var(--white); }
+    .btn-sub { display: block; font-size: 10px; font-weight: 300; color: var(--muted); letter-spacing: 0.08em; margin-top: 2px; }
+    .btn-arrow {
+      margin-left: auto; margin-right: 20px;
+      color: var(--gold); font-size: 16px;
+      opacity: 0; transform: translateX(-6px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn:hover .btn-arrow { opacity: 1; transform: translateX(0); }
+
+    /* CALCULATOR */
+    .calc-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 40px 36px;
+      animation: riseIn 1s cubic-bezier(.16,1,.3,1) both;
+      animation-delay: 0.1s;
+      margin-top: 16px;
+    }
+
+    .calc-eyebrow {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .calc-eyebrow::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+    .calc-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px; font-weight: 400; line-height: 1.1;
+      margin-bottom: 32px;
+    }
+    .calc-title em { font-style: italic; color: var(--gold); }
+
+    .field-group { margin-bottom: 0; }
+    .field-label {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .field-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      border: 1px solid var(--gold);
+    }
+    .field-dot.filled { background: var(--gold); }
+
+    .input-wrap { position: relative; margin-bottom: 0; }
+    .input-wrap input {
+      width: 100%;
+      padding: 15px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--white);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+    .input-wrap input:focus {
+      border-color: var(--gold);
+      background: rgba(201,169,110,0.04);
+    }
+    .input-wrap input::placeholder {
+      color: rgba(107,107,122,0.6);
+      font-style: italic; font-size: 14px;
+    }
+
+    .field-connector {
+      height: 24px; display: flex;
+      align-items: center; padding-left: 14px;
+      position: relative;
+    }
+    .field-connector-inner {
+      width: 1px; height: 100%;
+      background: var(--border);
+    }
+    .swap-btn {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 28px; height: 28px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      transition: border-color 0.2s, color 0.2s, transform 0.3s;
+      z-index: 2;
+    }
+    .swap-btn:hover {
+      border-color: var(--gold); color: var(--gold);
+      transform: translate(-50%, -50%) rotate(180deg);
+    }
+    .geo-btn {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: 1px solid var(--border2);
+      color: var(--muted); cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 8px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .geo-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .geo-btn.loading { animation: geoPulse 1s infinite; }
+    @keyframes geoPulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+
+    .cta-btn {
+      width: 100%; padding: 18px; margin-top: 20px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+      border: none; cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: #1a1100;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .cta-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,169,110,0.25); }
+    .cta-btn:active { transform: translateY(0); }
+    .cta-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    .loading-bar {
+      height: 2px; margin-top: 14px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      display: none;
+    }
+    .error-msg {
+      font-size: 11px; color: var(--red);
+      letter-spacing: 0.08em; margin-top: 14px;
+      text-align: center; display: none; padding: 10px;
+      background: rgba(224,82,82,0.08);
+      border: 1px solid rgba(224,82,82,0.2);
+    }
+
+    #map {
+      width: 100%; height: 220px; margin-top: 24px;
+      border: 1px solid var(--border); display: none;
+      filter: brightness(0.9);
+    }
+
+    .result { display: none; margin-top: 28px; }
+    .result-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1px; background: var(--border2);
+      border: 1px solid var(--border2); margin-bottom: 1px;
+    }
+    .result-cell { padding: 18px 20px; background: var(--surface2); }
+    .result-key {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 6px;
+    }
+    .result-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; color: var(--white);
+    }
+    .result-price-row {
+      padding: 22px 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .price-label {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+    }
+    .price-note { font-size: 10px; color: var(--gold); letter-spacing: 0.08em; margin-top: 3px; }
+    .price-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 40px; color: var(--gold); letter-spacing: -0.02em;
+    }
+    .price-amount sup {
+      font-size: 20px; vertical-align: super;
+      font-family: 'Outfit', sans-serif; font-weight: 300;
+    }
+    .result-disclaimer {
+      font-size: 9px; font-weight: 300; color: var(--muted);
+      letter-spacing: 0.1em; text-align: center; margin-top: 12px;
+    }
+
+    .tariff { margin-top: 28px; border: 1px solid var(--border2); }
+    .tariff-head {
+      padding: 12px 20px;
+      background: rgba(201,169,110,0.06);
+      border-bottom: 1px solid var(--border2);
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+    }
+    .tariff-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 20px; border-bottom: 1px solid var(--border2);
+      transition: background 0.15s;
+    }
+    .tariff-row:last-child { border-bottom: none; }
+    .tariff-row:hover { background: rgba(255,255,255,0.02); }
+    .tariff-name { font-size: 13px; font-weight: 300; color: var(--white); }
+    .tariff-price { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--gold); }
+
+    .footer {
+      text-align: center; padding: 40px 0 0;
+      font-size: 9px; font-weight: 400;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(107,107,122,0.4);
+    }
+    .footer-ornament { font-size: 20px; display: block; margin-bottom: 10px; opacity: 0.3; }
+
+    /* DATETIME */
+    .datetime-section {
+      margin-top: 20px;
+      margin-bottom: 0;
+    }
+    .datetime-label {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .datetime-fields {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .dt-field { display: flex; flex-direction: column; gap: 6px; }
+    .dt-field label {
+      font-size: 9px; font-weight: 400;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .dt-field input {
+      width: 100%; padding: 14px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--white);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px; font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+      color-scheme: dark;
+    }
+    :root.light .dt-field input { color-scheme: light; }
+    .dt-field input:focus {
+      border-color: var(--gold);
+      background: rgba(201,169,110,0.04);
+    }
+
+    /* RESERVE BUTTON */
+    .reserve-btn {
+      display: flex; align-items: center; gap: 16px;
+      margin-top: 16px; padding: 0;
+      text-decoration: none;
+      border: 1px solid var(--gold);
+      background: rgba(201,169,110,0.06);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .reserve-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .reserve-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,169,110,0.2); }
+    .reserve-btn:hover::before { opacity: 1; }
+    .reserve-btn:hover .reserve-label,
+    .reserve-btn:hover .reserve-arrow { color: #1a1100; }
+    .reserve-btn:hover .reserve-sub { color: rgba(26,17,0,0.7); }
+    .reserve-btn:active { transform: none; }
+    .reserve-icon {
+      position: relative; z-index: 1;
+      font-size: 22px; padding: 18px 0 18px 20px; line-height: 1;
+    }
+    .reserve-text { position: relative; z-index: 1; flex: 1; }
+    .reserve-label {
+      display: block; font-size: 15px; font-weight: 500;
+      color: var(--gold); letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+    .reserve-sub {
+      display: block; font-size: 10px; font-weight: 300;
+      color: var(--muted); letter-spacing: 0.08em; margin-top: 2px;
+      transition: color 0.2s;
+    }
+    .reserve-arrow {
+      position: relative; z-index: 1;
+      color: var(--gold); font-size: 16px;
+      padding-right: 20px; transition: color 0.2s;
+    }
+
+    /* CALENDLY SECTION */
+    .calendly-section {
+      display: none;
+      margin-top: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      animation: riseIn 0.6s cubic-bezier(.16,1,.3,1) both;
+    }
+    .calendly-header {
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .calendly-header-left {}
+    .calendly-eyebrow {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 6px;
+    }
+    .calendly-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; font-weight: 400;
+      color: var(--white);
+    }
+    .calendly-title em { font-style: italic; color: var(--gold); }
+    .calendly-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    .calendly-close:hover { border-color: var(--gold); color: var(--gold); }
+    .calendly-summary {
+      padding: 14px 28px;
+      background: rgba(201,169,110,0.04);
+      border-bottom: 1px solid var(--border2);
+      display: flex; flex-wrap: wrap; gap: 16px;
+    }
+    .cal-sum-item {
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .cal-sum-key {
+      font-size: 8px; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .cal-sum-val {
+      font-size: 13px; font-weight: 400; color: var(--white);
+    }
+    .cal-sum-val.gold { color: var(--gold); font-family: 'Playfair Display', serif; }
+    #calendly-embed {
+      min-height: 620px;
+    }
+
+    /* ── WHATSAPP MODAL ── */
+    .wa-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 200;
+      backdrop-filter: blur(4px);
+    }
+    .wa-backdrop.open { display: block; }
+
+    .wa-modal {
+      display: none; position: fixed;
+      bottom: 0; left: 0; right: 0;
+      max-height: 92vh; overflow-y: auto;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(.16,1,.3,1);
+    }
+    .wa-modal.open { display: block; transform: translateY(0); }
+
+    .wa-modal-header {
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--surface); z-index: 1;
+    }
+    .wa-eyebrow {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: #25d366; margin-bottom: 4px;
+    }
+    .wa-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 400; color: var(--white);
+    }
+    .wa-title em { font-style: italic; color: #25d366; }
+
+    .wa-close {
+      width: 30px; height: 30px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted); font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .wa-close:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+    .wa-modal-body { padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 14px; }
+
+    .wa-hint {
+      font-size: 11px; font-weight: 300; color: var(--muted);
+      letter-spacing: 0.05em; line-height: 1.6;
+    }
+
+    .wa-field { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .wa-field label {
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+    }
+    .wa-field input, .wa-field select {
+      width: 100%; padding: 13px 14px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--white); font-family: 'Outfit', sans-serif;
+      font-size: 14px; font-weight: 300; outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none; color-scheme: dark;
+    }
+    :root.light .wa-field input,
+    :root.light .wa-field select { color-scheme: light; }
+    .wa-field input:focus, .wa-field select:focus { border-color: #25d366; }
+    .wa-field input::placeholder { color: rgba(107,107,122,0.5); font-style: italic; }
+    .wa-field select option { background: var(--surface2); }
+
+    .wa-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .wa-preview {
+      background: #0d1117;
+      border: 1px solid rgba(37,211,102,0.3);
+      border-left: 3px solid #25d366;
+      padding: 14px 16px;
+      font-size: 12px; line-height: 1.8;
+      color: rgba(226,232,240,0.8);
+      font-family: 'Outfit', sans-serif; font-weight: 300;
+      white-space: pre-wrap;
+      display: none;
+    }
+    .wa-preview.visible { display: block; }
+
+    .wa-send-btn {
+      width: 100%; padding: 18px;
+      background: #25d366; border: none; cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.1em; color: #fff;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .wa-send-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .wa-send-btn:active { transform: none; }
+    .wa-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .wa-disclaimer {
+      font-size: 9px; font-weight: 300; color: var(--muted);
+      letter-spacing: 0.1em; text-align: center;
+    }
+
+    /* Suggestions */
+    #autocomplete-dropdown {
+      position: fixed;
+      display: none;
+      background: #1e1e28;
+      border: 1px solid var(--gold);
+      z-index: 99999;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      min-width: 200px;
+    }
+    #autocomplete-dropdown div {
+      padding: 13px 16px; font-size: 13px; font-weight: 300;
+      font-family: 'Outfit', sans-serif; color: var(--white);
+      cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+      line-height: 1.4;
+    }
+    #autocomplete-dropdown div:last-child { border-bottom: none; }
+    #autocomplete-dropdown div:hover { background: rgba(201,169,110,0.15); color: var(--gold); }
+    .suggestions { display: none; }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes breathe {
+      0%,100% { opacity:1; transform:scale(1); box-shadow: 0 0 8px rgba(74,222,128,0.6); }
+      50% { opacity:0.5; transform:scale(0.7); box-shadow: 0 0 4px rgba(74,222,128,0.2); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position:  200% 0; }
+    }
+  </style>
+</head>
+<body>
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Changer le thème">
+  <div class="theme-toggle-knob" id="toggle-knob">🌙</div>
+</button>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span>Chauffeur privé · Toulouse</span>
+    </div>
+    <h1 class="hero-name">
+      Fred
+      <em>Traversfti</em>
+    </h1>
+    <p class="hero-tagline">VTC Indépendant · Occitanie (il connait le gout des feutres)</p>
+    <div class="badge">
+      <div class="badge-dot"></div>
+      <span>Réservation sur créneaux</span>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="contact-section" id="contact">
+    <div class="contact-label">Me contacter directement</div>
+    <div class="btns">
+      <a class="btn" href="tel:+33607843493">
+        <div class="btn-accent"></div>
+        <div class="btn-body">
+          <div class="btn-icon">📞</div>
+          <div>
+            <span class="btn-label">Appeler Fred</span>
+            <span class="btn-sub">Compose le numéro directement</span>
+          </div>
+          <div class="btn-arrow">→</div>
+        </div>
+      </a>
+      <button class="btn" onclick="openWAModal()">
+        <div class="btn-accent"></div>
+        <div class="btn-body">
+          <div class="btn-icon">📲</div>
+          <div>
+            <span class="btn-label">WhatsApp</span>
+            <span class="btn-sub">Message pré-rempli, prêt à envoyer</span>
+          </div>
+          <div class="btn-arrow">→</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div class="calc-section" id="calculator">
+    <div class="calc-eyebrow">Estimation tarifaire</div>
+    <h2 class="calc-title">Votre <em>trajet</em><br>en un instant</h2>
+
+    <div class="field-group">
+      <div class="field-label">
+        <div class="field-dot filled"></div>Adresse de départ
+        <button class="geo-btn" id="geo-btn" onclick="useGeolocation()" title="Utiliser ma position">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg>
+          Ma position
+        </button>
+      </div>
+      <div class="input-wrap">
+        <input type="text" id="from" placeholder="Ex : Gare Matabiau, Toulouse" autocomplete="off"/>
+        <div class="suggestions hidden" id="from-suggestions"></div>
+      </div>
+    </div>
+
+    <div class="field-connector">
+      <div class="field-connector-inner"></div>
+      <button class="swap-btn" id="swap-btn" onclick="swapFields()" title="Inverser départ / arrivée">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+      </button>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label"><div class="field-dot"></div>Adresse d'arrivée</div>
+      <div class="input-wrap">
+        <input type="text" id="to" placeholder="Ex : Aéroport Blagnac" autocomplete="off"/>
+        <div class="suggestions hidden" id="to-suggestions"></div>
+      </div>
+    </div>
+
+    <!-- DATE & HEURE -->
+    <div class="datetime-section">
+      <div class="datetime-label">
+        <div class="field-dot filled"></div>
+        Date &amp; heure souhaitées
+      </div>
+      <div class="datetime-fields">
+        <div class="dt-field">
+          <label>Date</label>
+          <input type="date" id="trip-date" />
+        </div>
+        <div class="dt-field">
+          <label>Heure</label>
+          <input type="time" id="trip-time" />
+        </div>
+      </div>
+    </div>
+
+    <button class="cta-btn" id="calc-btn" onclick="calculate()">Calculer l'itinéraire &nbsp;→</button>
+
+    <div class="loading-bar" id="loading"></div>
+    <div class="error-msg" id="error-msg"></div>
+
+    <div id="map"></div>
+
+    <div class="result" id="result">
+      <div class="result-grid">
+        <div class="result-cell">
+          <div class="result-key">Distance</div>
+          <div class="result-val" id="res-distance">—</div>
+        </div>
+        <div class="result-cell">
+          <div class="result-key">Durée estimée</div>
+          <div class="result-val" id="res-duration">—</div>
+        </div>
+      </div>
+      <div class="result-price-row">
+        <div>
+          <div class="price-label">Tarif estimé</div>
+          <div class="price-note" id="res-note"></div>
+        </div>
+        <div class="price-amount" id="res-price">—</div>
+      </div>
+      <div class="result-disclaimer">* Estimation indicative · Tarif confirmé par le chauffeur</div>
+
+      <!-- RESERVATION BUTTON -->
+      <button class="reserve-btn" id="reserve-btn" onclick="openCalendly()">
+        <div class="reserve-icon">📅</div>
+        <div class="reserve-text">
+          <span class="reserve-label">Choisir un créneau</span>
+          <span class="reserve-sub">Voir les disponibilités de Fred</span>
+        </div>
+        <div class="reserve-arrow">→</div>
+      </button>
+    </div>
+
+    <div class="tariff">
+      <div class="tariff-head">Grille tarifaire</div>
+      <div class="tariff-row"><span class="tariff-name">Prise en charge</span><span class="tariff-price">3,00 €</span></div>
+      <div class="tariff-row"><span class="tariff-name">Prix au kilomètre</span><span class="tariff-price">1,80 €/km</span></div>
+      <div class="tariff-row"><span class="tariff-name">Minimum de course</span><span class="tariff-price">8,00 €</span></div>
+      <div class="tariff-row"><span class="tariff-name">Aéroport Blagnac</span><span class="tariff-price">Forfait 35 €</span></div>
+    </div>
+  </div>
+
+  <!-- CALENDLY SECTION -->
+  <div class="calendly-section" id="calendly-section">
+    <div class="calendly-header">
+      <div class="calendly-header-left">
+        <div class="calendly-eyebrow">Réservation</div>
+        <h3 class="calendly-title">Choisir <em>un créneau</em></h3>
+      </div>
+      <button class="calendly-close" onclick="closeCalendly()">✕</button>
+    </div>
+    <div class="calendly-summary" id="cal-summary"></div>
+    <div id="calendly-embed"></div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-ornament">✦</span>
+    Scannez · Contactez · Voyagez
+  </div>
+</div>
+
+<script>
+  const TARIF = { baseFixe: 3.00, prixKm: 1.80, minimum: 8.00, blagnac: 35.00 };
+  const BLAGNAC_KEYWORDS = ['blagnac', 'a\u00e9roport', 'aeroport', 'tls', 'toulouse-blagnac'];
+  function isBlagnac(str) {
+    const s = (str || '').toLowerCase();
+    return BLAGNAC_KEYWORDS.some(k => s.includes(k));
+  }
+
+  let map = null, routeLayer = null;
+
+  // ── AUTOCOMPLETE — dropdown global unique ──
+  let acDropdown    = null;
+  let acActiveInput = null;
+  let acTimer       = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    acDropdown = document.getElementById('autocomplete-dropdown');
+    setupAutocomplete('from');
+    setupAutocomplete('to');
+  });
+
+  function acShow(input) {
+    if (!acDropdown || !input) return;
+    const rect = input.getBoundingClientRect();
+    acDropdown.style.top     = (rect.bottom + 2) + 'px';
+    acDropdown.style.left    = rect.left + 'px';
+    acDropdown.style.width   = rect.width + 'px';
+    acDropdown.style.display = 'block';
+  }
+
+  function acHide() {
+    if (!acDropdown) return;
+    acDropdown.style.display = 'none';
+    acDropdown.innerHTML = '';
+    acActiveInput = null;
+  }
+
+  function setupAutocomplete(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.addEventListener('input', () => {
+      clearTimeout(acTimer);
+      delete input.dataset.lat;
+      delete input.dataset.lon;
+      const q = input.value.trim();
+      if (q.length < 2) { acHide(); return; }
+      acTimer = setTimeout(() => fetchSuggestions(q, input), 300);
+    });
+
+    input.addEventListener('focus', () => {
+      if (input.value.trim().length >= 2 && acActiveInput === input) {
+        acShow(input);
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      // Délai pour laisser le mousedown sur une suggestion s'exécuter
+      setTimeout(acHide, 200);
+    });
+  }
+
+  async function fetchSuggestions(query, input) {
+    acActiveInput = input;
+    try {
+      const url  = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6&autocomplete=1`;
+      const res  = await fetch(url);
+      const data = await res.json();
+
+      if (acActiveInput !== input) return; // input a changé entre temps
+
+      acDropdown.innerHTML = '';
+      if (!data.features?.length) { acHide(); return; }
+
+      data.features.forEach(feature => {
+        const props      = feature.properties;
+        const [lon, lat] = feature.geometry.coordinates;
+        const div        = document.createElement('div');
+        div.textContent  = props.label;
+        div.addEventListener('mousedown', e => {
+          e.preventDefault();
+          input.value       = props.label;
+          input.dataset.lat = String(lat);
+          input.dataset.lon = String(lon);
+          acHide();
+        });
+        acDropdown.appendChild(div);
+      });
+
+      acShow(input);
+    } catch(e) {
+      acHide();
+    }
+  }
+
+  // Fermer si clic en dehors
+  document.addEventListener('mousedown', e => {
+    if (!acDropdown) return;
+    if (!acDropdown.contains(e.target) && e.target !== acActiveInput) acHide();
+  });
+
+  // Repositionner au scroll/resize
+  window.addEventListener('scroll', () => {
+    if (acDropdown && acActiveInput && acDropdown.style.display === 'block') acShow(acActiveInput);
+  }, true);
+  window.addEventListener('resize', () => {
+    if (acDropdown && acActiveInput && acDropdown.style.display === 'block') acShow(acActiveInput);
+  });
+
+  // setupAutocomplete appelé dans DOMContentLoaded
+
+  async function calculate() {
+    const fromInput = document.getElementById('from');
+    const toInput   = document.getElementById('to');
+    const errEl     = document.getElementById('error-msg');
+    const loadEl    = document.getElementById('loading');
+    const btn       = document.getElementById('calc-btn');
+    errEl.style.display = 'none';
+
+    const fromCoords = await getCoords(fromInput);
+    const toCoords   = await getCoords(toInput);
+    if (!fromCoords || !toCoords) {
+      errEl.textContent = 'Adresse introuvable, veuillez r\u00e9essayer.';
+      errEl.style.display = 'block'; return;
+    }
+
+    loadEl.style.display = 'block'; btn.disabled = true;
+    try {
+      const res  = await fetch(`https://router.project-osrm.org/route/v1/driving/${fromCoords.lon},${fromCoords.lat};${toCoords.lon},${toCoords.lat}?overview=full&geometries=geojson`);
+      const data = await res.json();
+      if (!data.routes || !data.routes.length) throw new Error('No route');
+
+      const route  = data.routes[0];
+      const distKm = route.distance / 1000;
+      const durMin = Math.ceil(route.duration / 60);
+
+      let prix, note = '';
+      if (isBlagnac(fromInput.value) || isBlagnac(toInput.value)) {
+        prix = TARIF.blagnac; note = 'Forfait a\u00e9roport Blagnac';
+      } else {
+        prix = TARIF.baseFixe + distKm * TARIF.prixKm;
+        if (prix < TARIF.minimum) prix = TARIF.minimum;
+      }
+
+      document.getElementById('res-distance').textContent = distKm.toFixed(1) + ' km';
+      document.getElementById('res-duration').textContent = formatDuration(durMin);
+      document.getElementById('res-price').innerHTML = prix.toFixed(2) + '<sup>\u20ac</sup>';
+      document.getElementById('res-note').textContent = note;
+      document.getElementById('result').style.display = 'block';
+      showMap(fromCoords, toCoords, route.geometry);
+
+      // Store for Calendly summary
+      lastResult = {
+        from: fromInput.value,
+        to:   toInput.value,
+        dist: distKm.toFixed(1),
+        dur:  durMin,
+        prix: prix.toFixed(2),
+        note: note,
+      };
+
+      // Build Google Calendar reservation link (fallback)
+      buildCalendarLink(fromInput.value, toInput.value, distKm, durMin, prix, note);
+    } catch(e) {
+      errEl.textContent = "Impossible de calculer l'itin\u00e9raire. R\u00e9essayez.";
+      errEl.style.display = 'block';
+    } finally {
+      loadEl.style.display = 'none'; btn.disabled = false;
+    }
+  }
+
+  async function getCoords(input) {
+    if (input.dataset.lat && input.dataset.lon) return { lat: parseFloat(input.dataset.lat), lon: parseFloat(input.dataset.lon) };
+    const q = input.value.trim();
+    if (!q) return null;
+    try {
+      // API Adresse gouv.fr — fallback geocoding
+      const res  = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=1`);
+      const data = await res.json();
+      if (!data.features?.length) return null;
+      const [lon, lat] = data.features[0].geometry.coordinates;
+      input.dataset.lat = lat; input.dataset.lon = lon;
+      return { lat, lon };
+    } catch { return null; }
+  }
+
+  function formatDuration(min) {
+    if (min < 60) return min + ' min';
+    const h = Math.floor(min / 60), m = min % 60;
+    return m > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${h}h`;
+  }
+
+  function showMap(from, to, geometry) {
+    const mapEl = document.getElementById('map');
+    mapEl.style.display = 'block';
+    if (!map) {
+      map = L.map('map', { zoomControl: false, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+    }
+    if (routeLayer) map.removeLayer(routeLayer);
+    const mkFrom = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#c9a96e;border-radius:50%;box-shadow:0 0 0 3px rgba(201,169,110,0.3)"></div>', iconSize:[10,10], iconAnchor:[5,5] });
+    const mkTo   = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#e8c98a;border-radius:2px;box-shadow:0 0 0 3px rgba(232,201,138,0.3)"></div>', iconSize:[10,10], iconAnchor:[5,5] });
+    L.marker([from.lat, from.lon], { icon: mkFrom }).addTo(map);
+    L.marker([to.lat,   to.lon  ], { icon: mkTo   }).addTo(map);
+    routeLayer = L.geoJSON(geometry, { style: { color: '#c9a96e', weight: 3, opacity: 0.9 } }).addTo(map);
+    map.fitBounds(routeLayer.getBounds(), { padding: [28,28] });
+  }
+
+  // ── GOOGLE CALENDAR LINK ──
+  function buildCalendarLink(from, to, distKm, durMin, prix, note) {
+    const dateVal = document.getElementById('trip-date').value;
+    const timeVal = document.getElementById('trip-time').value;
+
+    if (!dateVal || !timeVal) return;
+
+    // Parse start datetime
+    const [y, mo, d] = dateVal.split('-').map(Number);
+    const [h, mi]    = timeVal.split(':').map(Number);
+    const start = new Date(y, mo - 1, d, h, mi);
+    const end   = new Date(start.getTime() + durMin * 60000);
+
+    const fmt = dt => dt.toISOString().replace(/[-:]/g, '').replace('.000', '');
+
+    const prixLabel = note ? note + ' — ' + prix.toFixed(2) + '€' : prix.toFixed(2) + '€';
+
+    const title   = encodeURIComponent(`🚗 Course VTC — ${from} → ${to}`);
+    const details = encodeURIComponent(
+      `Client : [Nom à compléter]
+` +
+      `Départ : ${from}
+Arrivée : ${to}
+` +
+      `Distance : ${distKm.toFixed(1)} km · Durée : ${durMin} min
+` +
+      `Tarif : ${prixLabel}
+
+` +
+      `Réservation via carte QR VTC Toulouse`
+    );
+    const location = encodeURIComponent(from);
+    const dates    = `${fmt(start)}/${fmt(end)}`;
+
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
+
+    const btn = document.getElementById('reserve-btn');
+    btn.href = url;
+  }
+
+  // ── CALENDLY ──
+  const CALENDLY_URL = 'https://calendly.com/fred-traverse/course-vtc';
+
+  // Store last result for summary
+  let lastResult = {};
+
+  function openCalendly() {
+    const section = document.getElementById('calendly-section');
+    const embed   = document.getElementById('calendly-embed');
+    const summary = document.getElementById('cal-summary');
+
+    // Build summary bar
+    const date = document.getElementById('trip-date').value;
+    const time = document.getElementById('trip-time').value;
+    const dateLabel = date ? new Date(date + 'T12:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' }) : '—';
+
+    summary.innerHTML = `
+      <div class="cal-sum-item">
+        <span class="cal-sum-key">Départ</span>
+        <span class="cal-sum-val">${lastResult.from || '—'}</span>
+      </div>
+      <div class="cal-sum-item">
+        <span class="cal-sum-key">Arrivée</span>
+        <span class="cal-sum-val">${lastResult.to || '—'}</span>
+      </div>
+      <div class="cal-sum-item">
+        <span class="cal-sum-key">Date souhaitée</span>
+        <span class="cal-sum-val">${dateLabel} à ${time || '—'}</span>
+      </div>
+      <div class="cal-sum-item">
+        <span class="cal-sum-key">Tarif estimé</span>
+        <span class="cal-sum-val gold">${lastResult.prix || '—'} €</span>
+      </div>
+    `;
+
+    // Prefill name/notes in Calendly URL
+    const notes = encodeURIComponent(
+      `Trajet : ${lastResult.from} → ${lastResult.to} | ${lastResult.dist} km | ${lastResult.prix}€`
+    );
+    const prefillUrl = CALENDLY_URL + `?hide_gdpr_banner=1&primary_color=c9a96e&text_color=${document.documentElement.classList.contains('light') ? '1a1a1a' : 'f0eee8'}&background_color=${document.documentElement.classList.contains('light') ? 'ffffff' : '13131a'}`;
+
+    // Init Calendly inline widget
+    embed.innerHTML = '';
+    if (window.Calendly) {
+      Calendly.initInlineWidget({
+        url: prefillUrl,
+        parentElement: embed,
+        prefill: { customAnswers: { a1: `${lastResult.from} → ${lastResult.to}`, a2: lastResult.prix + '€' } }
+      });
+    } else {
+      // Fallback if script not loaded
+      embed.innerHTML = `<div style="padding:40px 28px;text-align:center;">
+        <p style="font-family:'Outfit',sans-serif;font-size:13px;color:var(--muted);margin-bottom:20px;">Chargement du calendrier...</p>
+        <a href="${CALENDLY_URL}" target="_blank" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1100;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">
+          Ouvrir Calendly →
+        </a>
+      </div>`;
+    }
+
+    section.style.display = 'block';
+    setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  function closeCalendly() {
+    document.getElementById('calendly-section').style.display = 'none';
+  }
+
+  // ── GÉOLOCALISATION ──
+  function useGeolocation() {
+    const btn = document.getElementById('geo-btn');
+    const input = document.getElementById('from');
+
+    if (!navigator.geolocation) {
+      alert('Géolocalisation non supportée par votre navigateur.');
+      return;
+    }
+
+    btn.classList.add('loading');
+    btn.textContent = '⌛ Localisation…';
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        try {
+          // Reverse geocoding via Nominatim
+          // API Adresse gouv.fr — reverse geocoding
+          const res  = await fetch(
+            `https://api-adresse.data.gouv.fr/reverse/?lon=${lon}&lat=${lat}`
+          );
+          const data = await res.json();
+          const label = data.features?.[0]?.properties?.label
+            || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+
+          input.value       = label;
+          input.dataset.lat = lat;
+          input.dataset.lon = lon;
+
+        } catch(e) {
+          // Fallback : coordonnées brutes
+          input.value = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+          input.dataset.lat = lat;
+          input.dataset.lon = lon;
+        }
+
+        btn.classList.remove('loading');
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg> Ma position`;
+      },
+      (err) => {
+        btn.classList.remove('loading');
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> Ma position`;
+        if (err.code === 1) alert('Accès à la position refusé. Autorisez la géolocalisation dans votre navigateur.');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }
+
+  // ── SWAP DÉPART / ARRIVÉE ──
+  function swapFields() {
+    const fromInput = document.getElementById('from');
+    const toInput   = document.getElementById('to');
+
+    const tmpVal = fromInput.value;
+    const tmpLat = fromInput.dataset.lat;
+    const tmpLon = fromInput.dataset.lon;
+
+    fromInput.value = toInput.value;
+    fromInput.dataset.lat = toInput.dataset.lat || '';
+    fromInput.dataset.lon = toInput.dataset.lon || '';
+
+    toInput.value = tmpVal;
+    toInput.dataset.lat = tmpLat || '';
+    toInput.dataset.lon = tmpLon || '';
+
+    // Reset result si affiché
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('map').style.display = 'none';
+    if (map) { map.remove(); map = null; routeLayer = null; }
+  }
+
+  // ── WHATSAPP MODAL ──
+  const FRED_WA = '33607843493';
+
+  function openWAModal() {
+    // Pré-remplir depuis les champs du calculateur si remplis
+    const fromVal = document.getElementById('from')?.value || '';
+    const toVal   = document.getElementById('to')?.value   || '';
+    const dateVal = document.getElementById('trip-date')?.value || '';
+    const timeVal = document.getElementById('trip-time')?.value || '';
+
+    if (fromVal) document.getElementById('wa-from').value = fromVal;
+    if (toVal)   document.getElementById('wa-to').value   = toVal;
+    if (dateVal) document.getElementById('wa-date').value = dateVal;
+    if (timeVal) document.getElementById('wa-time').value = timeVal;
+
+    document.getElementById('wa-backdrop').classList.add('open');
+    // Petit délai pour que display:block soit appliqué avant la transition
+    setTimeout(() => document.getElementById('wa-modal').classList.add('open'), 10);
+
+    updatePreview();
+
+    // Live preview sur chaque input
+    ['wa-from','wa-to','wa-date','wa-time','wa-passengers','wa-luggage'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updatePreview);
+      document.getElementById(id)?.addEventListener('change', updatePreview);
+    });
+  }
+
+  function closeWAModal() {
+    document.getElementById('wa-modal').classList.remove('open');
+    document.getElementById('wa-backdrop').classList.remove('open');
+    setTimeout(() => document.getElementById('wa-modal').style.display = '', 350);
+  }
+
+  function buildMessage() {
+    const from       = document.getElementById('wa-from').value.trim()       || "[Adresse de d\u00e9part]";
+    const to         = document.getElementById('wa-to').value.trim()         || "[Adresse d'arriv\u00e9e]";
+    const passengers = document.getElementById('wa-passengers').value        || '1';
+    const luggage    = document.getElementById('wa-luggage').value           || '0';
+
+    const dateRaw = document.getElementById('wa-date').value;
+    const timeVal = document.getElementById('wa-time').value || '[Heure]';
+    const dateLabel = dateRaw
+      ? new Date(dateRaw + 'T12:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+      : '[Date]';
+
+    return [
+      'Bonjour,',
+      '',
+      'Je souhaite réserver une course comme suit :',
+      '',
+      `📍 Départ : ${from}`,
+      `📍 Arrivée : ${to}`,
+      `📅 Date : ${dateLabel}`,
+      `🕐 Heure : ${timeVal}`,
+      `👥 Nombre de passagers : ${passengers}`,
+      `🧳 Nombre de bagages : ${luggage}`,
+      '',
+      'Merci.',
+    ].join('\n');
+  }
+
+  function updatePreview() {
+    const preview = document.getElementById('wa-preview');
+    preview.textContent = buildMessage();
+    preview.classList.add('visible');
+  }
+
+  function sendWhatsApp() {
+    const from = document.getElementById('wa-from').value.trim();
+    const to   = document.getElementById('wa-to').value.trim();
+    const date = document.getElementById('wa-date').value;
+    const time = document.getElementById('wa-time').value;
+
+    if (!from || !to || !date || !time) {
+      // Highlight champs vides
+      ['wa-from','wa-to','wa-date','wa-time'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+          el.style.borderColor = 'var(--red)';
+          setTimeout(() => el.style.borderColor = '', 2000);
+        }
+      });
+      return;
+    }
+
+    const msg = encodeURIComponent(buildMessage());
+    window.open(`https://wa.me/${FRED_WA}?text=${msg}`, '_blank');
+    closeWAModal();
+  }
+
+  // ── THEME TOGGLE ──
+  function toggleTheme() {
+    const isLight = document.documentElement.classList.toggle('light');
+    document.getElementById('toggle-knob').textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    // Update map tiles if map exists
+    if (map) {
+      map.eachLayer(l => { if (l._url) map.removeLayer(l); });
+      const tiles = isLight
+        ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      L.tileLayer(tiles, { maxZoom: 19 }).addTo(map);
+    }
+  }
+
+  // Restore saved theme
+  if (localStorage.getItem('theme') === 'light') {
+    document.documentElement.classList.add('light');
+    document.getElementById('toggle-knob').textContent = '☀️';
+  }
+
+  // Set default date = today, time = now + 30min
+  (function() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 30);
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('trip-date').value =
+      now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+    document.getElementById('trip-time').value =
+      pad(now.getHours()) + ':' + pad(now.getMinutes());
+  })();
+
+  // ── SERVICE WORKER (PWA) ──
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                showUpdateBanner();
+              }
+            });
+          });
+        });
+    });
+  }
+
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!localStorage.getItem('pwa-dismissed')) showInstallBanner();
+  });
+
+  function showInstallBanner() {
+    const b = document.createElement('div');
+    b.id = 'install-banner';
+    b.innerHTML = `<div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:min(90vw,400px);z-index:10000;background:var(--surface);border:1px solid var(--gold);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-family:'Outfit',sans-serif;animation:riseIn 0.5s cubic-bezier(.16,1,.3,1) both">
+      <span style="font-size:24px">📱</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:2px">Installer l'app</div><div style="font-size:10px;color:var(--muted);letter-spacing:0.08em">Accès rapide depuis votre écran d'accueil</div></div>
+      <button onclick="installPWA()" style="padding:10px 16px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#1a1100">Installer</button>
+      <button onclick="dismissInstall()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;line-height:1">✕</button>
+    </div>`;
+    document.body.appendChild(b);
+  }
+
+  async function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    dismissInstall();
+  }
+
+  function dismissInstall() {
+    localStorage.setItem('pwa-dismissed', '1');
+    document.getElementById('install-banner')?.remove();
+  }
+
+  function showUpdateBanner() {
+    const b = document.createElement('div');
+    b.innerHTML = `<div style="position:fixed;top:16px;left:50%;transform:translateX(-50%);width:min(90vw,360px);z-index:10000;background:var(--surface);border:1px solid var(--gold);padding:14px 18px;display:flex;align-items:center;gap:12px;font-family:'Outfit',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+      <span>🔄</span>
+      <div style="flex:1;font-size:12px;color:var(--white)">Mise à jour disponible</div>
+      <button onclick="location.reload()" style="padding:8px 14px;background:var(--gold);border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#1a1100">Recharger</button>
+    </div>`;
+    document.body.appendChild(b);
+  }
+</script>
+
+  <!-- AUTOCOMPLETE DROPDOWN -->
+  <div id="autocomplete-dropdown"></div>
+
+  <!-- ── WHATSAPP MODAL ── -->
+  <div class="wa-backdrop" id="wa-backdrop" onclick="closeWAModal()"></div>
+  <div class="wa-modal" id="wa-modal">
+    <div class="wa-modal-header">
+      <div>
+        <div class="wa-eyebrow">WhatsApp</div>
+        <h3 class="wa-title">Votre <em>demande</em></h3>
+      </div>
+      <button class="wa-close" onclick="closeWAModal()">✕</button>
+    </div>
+    <div class="wa-modal-body">
+      <p class="wa-hint">Remplissez les champs puis envoyez — Fred reçoit le message directement.</p>
+
+      <div class="wa-row">
+        <div class="wa-field">
+          <label>📅 Date *</label>
+          <input type="date" id="wa-date"/>
+        </div>
+        <div class="wa-field">
+          <label>🕐 Heure *</label>
+          <input type="time" id="wa-time"/>
+        </div>
+      </div>
+
+      <div class="wa-field">
+        <label>📍 Départ *</label>
+        <input type="text" id="wa-from" placeholder="Ex : Gare Matabiau, Toulouse"/>
+      </div>
+
+      <div class="wa-field">
+        <label>📍 Arrivée *</label>
+        <input type="text" id="wa-to" placeholder="Ex : Aéroport Blagnac"/>
+      </div>
+
+      <div class="wa-row">
+        <div class="wa-field">
+          <label>👥 Passagers</label>
+          <select id="wa-passengers">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5+">5+</option>
+          </select>
+        </div>
+        <div class="wa-field">
+          <label>🧳 Bagages</label>
+          <select id="wa-luggage">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4+">4+</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="wa-preview" id="wa-preview"></div>
+
+      <button class="wa-send-btn" id="wa-send-btn" onclick="sendWhatsApp()">
+        <span>📲</span> Ouvrir WhatsApp &amp; Envoyer
+      </button>
+
+      <p class="wa-disclaimer">Vous pourrez relire le message avant de l'envoyer.</p>
+    </div>
+  </div>
+</body>
+</html>
