@@ -731,7 +731,7 @@
       Fred
       <em>Traversfti</em>
     </h1>
-    <p class="hero-tagline">VTC Indépendant · Occitanie (il connait le gout des feutres)</p>
+    <p class="hero-tagline">VTC Indépendant · Occitanie</p>
     <div class="badge">
       <div class="badge-dot"></div>
       <span>Réservation sur créneaux</span>
@@ -893,7 +893,7 @@
     return BLAGNAC_KEYWORDS.some(k => s.includes(k));
   }
 
-  let map = null, routeLayer = null;
+  let map = null, routeLayer = null, markers = [];
 
   // ── AUTOCOMPLETE — dropdown global unique ──
   let acDropdown    = null;
@@ -904,6 +904,12 @@
     acDropdown = document.getElementById('autocomplete-dropdown');
     setupAutocomplete('from');
     setupAutocomplete('to');
+
+    // WhatsApp modal: live preview listeners (attached once to avoid leaks)
+    ['wa-from','wa-to','wa-date','wa-time','wa-passengers','wa-luggage'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updatePreview);
+      document.getElementById(id)?.addEventListener('change', updatePreview);
+    });
   });
 
   function acShow(input) {
@@ -1046,8 +1052,6 @@
         note: note,
       };
 
-      // Build Google Calendar reservation link (fallback)
-      buildCalendarLink(fromInput.value, toInput.value, distKm, durMin, prix, note);
     } catch(e) {
       errEl.textContent = "Impossible de calculer l'itin\u00e9raire. R\u00e9essayez.";
       errEl.style.display = 'block';
@@ -1085,52 +1089,14 @@
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
     }
     if (routeLayer) map.removeLayer(routeLayer);
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
     const mkFrom = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#c9a96e;border-radius:50%;box-shadow:0 0 0 3px rgba(201,169,110,0.3)"></div>', iconSize:[10,10], iconAnchor:[5,5] });
     const mkTo   = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#e8c98a;border-radius:2px;box-shadow:0 0 0 3px rgba(232,201,138,0.3)"></div>', iconSize:[10,10], iconAnchor:[5,5] });
-    L.marker([from.lat, from.lon], { icon: mkFrom }).addTo(map);
-    L.marker([to.lat,   to.lon  ], { icon: mkTo   }).addTo(map);
+    markers.push(L.marker([from.lat, from.lon], { icon: mkFrom }).addTo(map));
+    markers.push(L.marker([to.lat,   to.lon  ], { icon: mkTo   }).addTo(map));
     routeLayer = L.geoJSON(geometry, { style: { color: '#c9a96e', weight: 3, opacity: 0.9 } }).addTo(map);
     map.fitBounds(routeLayer.getBounds(), { padding: [28,28] });
-  }
-
-  // ── GOOGLE CALENDAR LINK ──
-  function buildCalendarLink(from, to, distKm, durMin, prix, note) {
-    const dateVal = document.getElementById('trip-date').value;
-    const timeVal = document.getElementById('trip-time').value;
-
-    if (!dateVal || !timeVal) return;
-
-    // Parse start datetime
-    const [y, mo, d] = dateVal.split('-').map(Number);
-    const [h, mi]    = timeVal.split(':').map(Number);
-    const start = new Date(y, mo - 1, d, h, mi);
-    const end   = new Date(start.getTime() + durMin * 60000);
-
-    const fmt = dt => dt.toISOString().replace(/[-:]/g, '').replace('.000', '');
-
-    const prixLabel = note ? note + ' — ' + prix.toFixed(2) + '€' : prix.toFixed(2) + '€';
-
-    const title   = encodeURIComponent(`🚗 Course VTC — ${from} → ${to}`);
-    const details = encodeURIComponent(
-      `Client : [Nom à compléter]
-` +
-      `Départ : ${from}
-Arrivée : ${to}
-` +
-      `Distance : ${distKm.toFixed(1)} km · Durée : ${durMin} min
-` +
-      `Tarif : ${prixLabel}
-
-` +
-      `Réservation via carte QR VTC Toulouse`
-    );
-    const location = encodeURIComponent(from);
-    const dates    = `${fmt(start)}/${fmt(end)}`;
-
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
-
-    const btn = document.getElementById('reserve-btn');
-    btn.href = url;
   }
 
   // ── CALENDLY ──
@@ -1174,7 +1140,6 @@ Arrivée : ${to}
     );
     const prefillUrl = CALENDLY_URL + `?hide_gdpr_banner=1&primary_color=c9a96e&text_color=${document.documentElement.classList.contains('light') ? '1a1a1a' : 'f0eee8'}&background_color=${document.documentElement.classList.contains('light') ? 'ffffff' : '13131a'}`;
 
-    // Init Calendly inline widget
     embed.innerHTML = '';
     if (window.Calendly) {
       Calendly.initInlineWidget({
@@ -1183,7 +1148,6 @@ Arrivée : ${to}
         prefill: { customAnswers: { a1: `${lastResult.from} → ${lastResult.to}`, a2: lastResult.prix + '€' } }
       });
     } else {
-      // Fallback if script not loaded
       embed.innerHTML = `<div style="padding:40px 28px;text-align:center;">
         <p style="font-family:'Outfit',sans-serif;font-size:13px;color:var(--muted);margin-bottom:20px;">Chargement du calendrier...</p>
         <a href="${CALENDLY_URL}" target="_blank" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1100;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">
@@ -1269,7 +1233,7 @@ Arrivée : ${to}
     // Reset result si affiché
     document.getElementById('result').style.display = 'none';
     document.getElementById('map').style.display = 'none';
-    if (map) { map.remove(); map = null; routeLayer = null; }
+    if (map) { map.remove(); map = null; routeLayer = null; markers = []; }
   }
 
   // ── WHATSAPP MODAL ──
@@ -1292,12 +1256,6 @@ Arrivée : ${to}
     setTimeout(() => document.getElementById('wa-modal').classList.add('open'), 10);
 
     updatePreview();
-
-    // Live preview sur chaque input
-    ['wa-from','wa-to','wa-date','wa-time','wa-passengers','wa-luggage'].forEach(id => {
-      document.getElementById(id)?.addEventListener('input', updatePreview);
-      document.getElementById(id)?.addEventListener('change', updatePreview);
-    });
   }
 
   function closeWAModal() {

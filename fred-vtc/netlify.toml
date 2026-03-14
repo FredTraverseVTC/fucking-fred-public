@@ -1,15 +1,10 @@
 [build]
   publish   = "public"
-  functions = "netlify/functions"
 
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
   status = 200
-
-# Renouvellement automatique du webhook Google toutes les 6 jours
-[functions."renew-watch"]
-  schedule = "0 6 */6 * *"
 
 # Headers de sécurité sur toutes les pages
 [[headers]]
@@ -19,10 +14,5 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection       = "1; mode=block"
     Referrer-Policy        = "no-referrer"
-    Permissions-Policy     = "geolocation=(), microphone=(), camera=()"
-
-# Headers spécifiques aux fonctions
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
+    Permissions-Policy     = "geolocation=(self), microphone=(), camera=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://assets.calendly.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://assets.calendly.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; connect-src 'self' https://api-adresse.data.gouv.fr https://router.project-osrm.org https://calendly.com https://assets.calendly.com; frame-src https://calendly.com;"
