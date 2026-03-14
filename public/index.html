@@ -26,10 +26,6 @@
   <title>Fred Traverse — Chauffeur Privé Toulouse</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet"/>
-  <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -338,84 +334,6 @@
     .cta-btn:active { transform: translateY(0); }
     .cta-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
-    .loading-bar {
-      height: 2px; margin-top: 14px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-      display: none;
-    }
-    .error-msg {
-      font-size: 11px; color: var(--red);
-      letter-spacing: 0.08em; margin-top: 14px;
-      text-align: center; display: none; padding: 10px;
-      background: rgba(224,82,82,0.08);
-      border: 1px solid rgba(224,82,82,0.2);
-    }
-
-    #map {
-      width: 100%; height: 220px; margin-top: 24px;
-      border: 1px solid var(--border); display: none;
-      filter: brightness(0.9);
-    }
-
-    .result { display: none; margin-top: 28px; }
-    .result-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 1px; background: var(--border2);
-      border: 1px solid var(--border2); margin-bottom: 1px;
-    }
-    .result-cell { padding: 18px 20px; background: var(--surface2); }
-    .result-key {
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 6px;
-    }
-    .result-val {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px; color: var(--white);
-    }
-    .result-price-row {
-      padding: 22px 20px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .price-label {
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
-    }
-    .price-note { font-size: 10px; color: var(--gold); letter-spacing: 0.08em; margin-top: 3px; }
-    .price-amount {
-      font-family: 'Playfair Display', serif;
-      font-size: 40px; color: var(--gold); letter-spacing: -0.02em;
-    }
-    .price-amount sup {
-      font-size: 20px; vertical-align: super;
-      font-family: 'Montserrat', sans-serif; font-weight: 300;
-    }
-    .result-disclaimer {
-      font-size: 9px; font-weight: 300; color: var(--muted);
-      letter-spacing: 0.1em; text-align: center; margin-top: 12px;
-    }
-
-    .tariff { margin-top: 28px; border: 1px solid var(--border2); }
-    .tariff-head {
-      padding: 12px 20px;
-      background: rgba(201,169,110,0.06);
-      border-bottom: 1px solid var(--border2);
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
-    }
-    .tariff-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 13px 20px; border-bottom: 1px solid var(--border2);
-      transition: background 0.15s;
-    }
-    .tariff-row:last-child { border-bottom: none; }
-    .tariff-row:hover { background: rgba(255,255,255,0.02); }
-    .tariff-name { font-size: 13px; font-weight: 300; color: var(--white); }
-    .tariff-price { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--gold); }
 
     .footer {
       text-align: center; padding: 40px 0 0;
@@ -463,105 +381,8 @@
       background: rgba(201,169,110,0.04);
     }
 
-    /* RESERVE BUTTON */
-    .reserve-btn {
-      display: flex; align-items: center; gap: 16px;
-      margin-top: 16px; padding: 0;
-      text-decoration: none;
-      border: 1px solid var(--gold);
-      background: rgba(201,169,110,0.06);
-      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-      position: relative; overflow: hidden;
-    }
-    .reserve-btn::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, var(--gold), var(--gold2));
-      opacity: 0; transition: opacity 0.25s;
-    }
-    .reserve-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,169,110,0.2); }
-    .reserve-btn:hover::before { opacity: 1; }
-    .reserve-btn:hover .reserve-label,
-    .reserve-btn:hover .reserve-arrow { color: #1a1100; }
-    .reserve-btn:hover .reserve-sub { color: rgba(26,17,0,0.7); }
-    .reserve-btn:active { transform: none; }
-    .reserve-icon {
-      position: relative; z-index: 1;
-      font-size: 22px; padding: 18px 0 18px 20px; line-height: 1;
-    }
-    .reserve-text { position: relative; z-index: 1; flex: 1; }
-    .reserve-label {
-      display: block; font-size: 15px; font-weight: 500;
-      color: var(--gold); letter-spacing: 0.01em;
-      transition: color 0.2s;
-    }
-    .reserve-sub {
-      display: block; font-size: 10px; font-weight: 300;
-      color: var(--muted); letter-spacing: 0.08em; margin-top: 2px;
-      transition: color 0.2s;
-    }
-    .reserve-arrow {
-      position: relative; z-index: 1;
-      color: var(--gold); font-size: 16px;
-      padding-right: 20px; transition: color 0.2s;
-    }
-
-    /* CALENDLY SECTION */
-    .calendly-section {
-      display: none;
-      margin-top: 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      animation: riseIn 0.6s cubic-bezier(.16,1,.3,1) both;
-    }
-    .calendly-header {
-      padding: 24px 28px 20px;
-      border-bottom: 1px solid var(--border2);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .calendly-header-left {}
-    .calendly-eyebrow {
-      font-size: 9px; font-weight: 500;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 6px;
-    }
-    .calendly-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px; font-weight: 400;
-      color: var(--white);
-    }
-    .calendly-title em { font-style: italic; color: var(--gold); }
-    .calendly-close {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--surface2); border: 1px solid var(--border2);
-      color: var(--muted); font-size: 16px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
       transition: border-color 0.2s, color 0.2s;
-      flex-shrink: 0;
-    }
-    .calendly-close:hover { border-color: var(--gold); color: var(--gold); }
-    .calendly-summary {
-      padding: 14px 28px;
-      background: rgba(201,169,110,0.04);
-      border-bottom: 1px solid var(--border2);
-      display: flex; flex-wrap: wrap; gap: 16px;
-    }
-    .cal-sum-item {
-      display: flex; flex-direction: column; gap: 3px;
-    }
-    .cal-sum-key {
-      font-size: 8px; font-weight: 500;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--muted);
-    }
-    .cal-sum-val {
-      font-size: 13px; font-weight: 400; color: var(--white);
-    }
-    .cal-sum-val.gold { color: var(--gold); font-family: 'Playfair Display', serif; }
-    #calendly-embed {
-      min-height: 620px;
-    }
+
 
     /* ── WHATSAPP MODAL ── */
     .wa-backdrop {
@@ -703,10 +524,6 @@
       0%,100% { opacity:1; transform:scale(1); box-shadow: 0 0 8px rgba(74,222,128,0.6); }
       50% { opacity:0.5; transform:scale(0.7); box-shadow: 0 0 4px rgba(74,222,128,0.2); }
     }
-    @keyframes shimmer {
-      0%   { background-position: -200% 0; }
-      100% { background-position:  200% 0; }
-    }
   </style>
 </head>
 <body>
@@ -756,8 +573,8 @@
 
   <!-- CALCULATOR -->
   <div class="calc-section" id="calculator">
-    <div class="calc-eyebrow">Estimation tarifaire</div>
-    <h2 class="calc-title">Votre <em>trajet</em><br>en un instant</h2>
+    <div class="calc-eyebrow">Votre trajet</div>
+    <h2 class="calc-title">Réserver <em>une course</em></h2>
 
     <div class="field-group">
       <div class="field-label">
@@ -804,64 +621,7 @@
       </div>
     </div>
 
-    <button class="cta-btn" id="calc-btn" onclick="calculate()">Calculer l'itinéraire &nbsp;→</button>
-
-    <div class="loading-bar" id="loading"></div>
-    <div class="error-msg" id="error-msg"></div>
-
-    <div id="map"></div>
-
-    <div class="result" id="result">
-      <div class="result-grid">
-        <div class="result-cell">
-          <div class="result-key">Distance</div>
-          <div class="result-val" id="res-distance">—</div>
-        </div>
-        <div class="result-cell">
-          <div class="result-key">Durée estimée</div>
-          <div class="result-val" id="res-duration">—</div>
-        </div>
-      </div>
-      <div class="result-price-row">
-        <div>
-          <div class="price-label">Tarif estimé</div>
-          <div class="price-note" id="res-note"></div>
-        </div>
-        <div class="price-amount" id="res-price">—</div>
-      </div>
-      <div class="result-disclaimer">* Estimation indicative · Tarif confirmé par le chauffeur</div>
-
-      <!-- RESERVATION BUTTON -->
-      <button class="reserve-btn" id="reserve-btn" onclick="openCalendly()">
-        <div class="reserve-icon">📅</div>
-        <div class="reserve-text">
-          <span class="reserve-label">Choisir un créneau</span>
-          <span class="reserve-sub">Voir les disponibilités de Fred</span>
-        </div>
-        <div class="reserve-arrow">→</div>
-      </button>
-    </div>
-
-    <div class="tariff">
-      <div class="tariff-head">Grille tarifaire</div>
-      <div class="tariff-row"><span class="tariff-name">Prise en charge</span><span class="tariff-price">3,00 €</span></div>
-      <div class="tariff-row"><span class="tariff-name">Prix au kilomètre</span><span class="tariff-price">1,80 €/km</span></div>
-      <div class="tariff-row"><span class="tariff-name">Minimum de course</span><span class="tariff-price">8,00 €</span></div>
-      <div class="tariff-row"><span class="tariff-name">Aéroport Blagnac</span><span class="tariff-price">Forfait 35 €</span></div>
-    </div>
-  </div>
-
-  <!-- CALENDLY SECTION -->
-  <div class="calendly-section" id="calendly-section">
-    <div class="calendly-header">
-      <div class="calendly-header-left">
-        <div class="calendly-eyebrow">Réservation</div>
-        <h3 class="calendly-title">Choisir <em>un créneau</em></h3>
-      </div>
-      <button class="calendly-close" onclick="closeCalendly()">✕</button>
-    </div>
-    <div class="calendly-summary" id="cal-summary"></div>
-    <div id="calendly-embed"></div>
+    <button class="cta-btn" onclick="openWAModal()">Envoyer ma demande via WhatsApp &nbsp;→</button>
   </div>
 
   <div class="footer">
@@ -871,14 +631,6 @@
 </div>
 
 <script>
-  const TARIF = { baseFixe: 3.00, prixKm: 1.80, minimum: 8.00, blagnac: 35.00 };
-  const BLAGNAC_KEYWORDS = ['blagnac', 'a\u00e9roport', 'aeroport', 'tls', 'toulouse-blagnac'];
-  function isBlagnac(str) {
-    const s = (str || '').toLowerCase();
-    return BLAGNAC_KEYWORDS.some(k => s.includes(k));
-  }
-
-  let map = null, routeLayer = null, markers = [];
 
   // ── AUTOCOMPLETE ──
   function setupAutocomplete(inputId) {
@@ -971,168 +723,6 @@
     });
   });
 
-  async function calculate() {
-    const fromInput = document.getElementById('from');
-    const toInput   = document.getElementById('to');
-    const errEl     = document.getElementById('error-msg');
-    const loadEl    = document.getElementById('loading');
-    const btn       = document.getElementById('calc-btn');
-    errEl.style.display = 'none';
-
-    const fromCoords = await getCoords(fromInput);
-    const toCoords   = await getCoords(toInput);
-    if (!fromCoords || !toCoords) {
-      errEl.textContent = 'Adresse introuvable, veuillez r\u00e9essayer.';
-      errEl.style.display = 'block'; return;
-    }
-
-    loadEl.style.display = 'block'; btn.disabled = true;
-    try {
-      const res  = await fetch(`https://router.project-osrm.org/route/v1/driving/${fromCoords.lon},${fromCoords.lat};${toCoords.lon},${toCoords.lat}?overview=full&geometries=geojson`);
-      const data = await res.json();
-      if (!data.routes || !data.routes.length) throw new Error('No route');
-
-      const route  = data.routes[0];
-      const distKm = route.distance / 1000;
-      const durMin = Math.ceil(route.duration / 60);
-
-      let prix, note = '';
-      if (isBlagnac(fromInput.value) || isBlagnac(toInput.value)) {
-        prix = TARIF.blagnac; note = 'Forfait a\u00e9roport Blagnac';
-      } else {
-        prix = TARIF.baseFixe + distKm * TARIF.prixKm;
-        if (prix < TARIF.minimum) prix = TARIF.minimum;
-      }
-
-      document.getElementById('res-distance').textContent = distKm.toFixed(1) + ' km';
-      document.getElementById('res-duration').textContent = formatDuration(durMin);
-      document.getElementById('res-price').innerHTML = prix.toFixed(2) + '<sup>\u20ac</sup>';
-      document.getElementById('res-note').textContent = note;
-      document.getElementById('result').style.display = 'block';
-      showMap(fromCoords, toCoords, route.geometry);
-
-      // Store for Calendly summary
-      lastResult = {
-        from: fromInput.value,
-        to:   toInput.value,
-        dist: distKm.toFixed(1),
-        dur:  durMin,
-        prix: prix.toFixed(2),
-        note: note,
-      };
-
-    } catch(e) {
-      errEl.textContent = "Impossible de calculer l'itin\u00e9raire. R\u00e9essayez.";
-      errEl.style.display = 'block';
-    } finally {
-      loadEl.style.display = 'none'; btn.disabled = false;
-    }
-  }
-
-  async function getCoords(input) {
-    if (input.dataset.lat && input.dataset.lon) return { lat: parseFloat(input.dataset.lat), lon: parseFloat(input.dataset.lon) };
-    const q = input.value.trim();
-    if (!q) return null;
-    try {
-      // API Adresse gouv.fr — fallback geocoding
-      const res  = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=1`);
-      const data = await res.json();
-      if (!data.features?.length) return null;
-      const [lon, lat] = data.features[0].geometry.coordinates;
-      input.dataset.lat = lat; input.dataset.lon = lon;
-      return { lat, lon };
-    } catch { return null; }
-  }
-
-  function formatDuration(min) {
-    if (min < 60) return min + ' min';
-    const h = Math.floor(min / 60), m = min % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${h}h`;
-  }
-
-  function showMap(from, to, geometry) {
-    const mapEl = document.getElementById('map');
-    mapEl.style.display = 'block';
-    if (!map) {
-      map = L.map('map', { zoomControl: false, attributionControl: false });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-    }
-    if (routeLayer) map.removeLayer(routeLayer);
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
-    const mkFrom = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#c9a96e;border-radius:50%;box-shadow:0 0 0 3px rgba(201,169,110,0.3)"></div>', iconSize:[10,10], iconAnchor:[5,5] });
-    const mkTo   = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#e8c98a;border-radius:2px;box-shadow:0 0 0 3px rgba(232,201,138,0.3)"></div>', iconSize:[10,10], iconAnchor:[5,5] });
-    markers.push(L.marker([from.lat, from.lon], { icon: mkFrom }).addTo(map));
-    markers.push(L.marker([to.lat,   to.lon  ], { icon: mkTo   }).addTo(map));
-    routeLayer = L.geoJSON(geometry, { style: { color: '#c9a96e', weight: 3, opacity: 0.9 } }).addTo(map);
-    map.fitBounds(routeLayer.getBounds(), { padding: [28,28] });
-  }
-
-  // ── CALENDLY ──
-  const CALENDLY_URL = 'https://calendly.com/fred-traverse/course-vtc';
-
-  // Store last result for summary
-  let lastResult = {};
-
-  function openCalendly() {
-    const section = document.getElementById('calendly-section');
-    const embed   = document.getElementById('calendly-embed');
-    const summary = document.getElementById('cal-summary');
-
-    // Build summary bar
-    const date = document.getElementById('trip-date').value;
-    const time = document.getElementById('trip-time').value;
-    const dateLabel = date ? new Date(date + 'T12:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' }) : '—';
-
-    summary.innerHTML = `
-      <div class="cal-sum-item">
-        <span class="cal-sum-key">Départ</span>
-        <span class="cal-sum-val">${lastResult.from || '—'}</span>
-      </div>
-      <div class="cal-sum-item">
-        <span class="cal-sum-key">Arrivée</span>
-        <span class="cal-sum-val">${lastResult.to || '—'}</span>
-      </div>
-      <div class="cal-sum-item">
-        <span class="cal-sum-key">Date souhaitée</span>
-        <span class="cal-sum-val">${dateLabel} à ${time || '—'}</span>
-      </div>
-      <div class="cal-sum-item">
-        <span class="cal-sum-key">Tarif estimé</span>
-        <span class="cal-sum-val gold">${lastResult.prix || '—'} €</span>
-      </div>
-    `;
-
-    // Prefill name/notes in Calendly URL
-    const notes = encodeURIComponent(
-      `Trajet : ${lastResult.from} → ${lastResult.to} | ${lastResult.dist} km | ${lastResult.prix}€`
-    );
-    const prefillUrl = CALENDLY_URL + `?hide_gdpr_banner=1&primary_color=c9a96e&text_color=${document.documentElement.classList.contains('light') ? '1a1a1a' : 'f0eee8'}&background_color=${document.documentElement.classList.contains('light') ? 'ffffff' : '13131a'}`;
-
-    embed.innerHTML = '';
-    if (window.Calendly) {
-      Calendly.initInlineWidget({
-        url: prefillUrl,
-        parentElement: embed,
-        prefill: { customAnswers: { a1: `${lastResult.from} → ${lastResult.to}`, a2: lastResult.prix + '€' } }
-      });
-    } else {
-      embed.innerHTML = `<div style="padding:40px 28px;text-align:center;">
-        <p style="font-family:'Montserrat',sans-serif;font-size:13px;color:var(--muted);margin-bottom:20px;">Chargement du calendrier...</p>
-        <a href="${CALENDLY_URL}" target="_blank" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1100;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">
-          Ouvrir Calendly →
-        </a>
-      </div>`;
-    }
-
-    section.style.display = 'block';
-    setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-  }
-
-  function closeCalendly() {
-    document.getElementById('calendly-section').style.display = 'none';
-  }
-
   // ── GÉOLOCALISATION ──
   function useGeolocation() {
     const btn = document.getElementById('geo-btn');
@@ -1198,11 +788,6 @@
     toInput.value = tmpVal;
     toInput.dataset.lat = tmpLat || '';
     toInput.dataset.lon = tmpLon || '';
-
-    // Reset result si affiché
-    document.getElementById('result').style.display = 'none';
-    document.getElementById('map').style.display = 'none';
-    if (map) { map.remove(); map = null; routeLayer = null; markers = []; }
   }
 
   // ── WHATSAPP MODAL ──
@@ -1245,6 +830,8 @@
       ? new Date(dateRaw + 'T12:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
       : '[Date]';
 
+    const wazeLink = `https://waze.com/ul?q=${encodeURIComponent(from)}&navigate=yes`;
+
     return [
       'Bonjour,',
       '',
@@ -1256,6 +843,8 @@
       `🕐 Heure : ${timeVal}`,
       `👥 Nombre de passagers : ${passengers}`,
       `🧳 Nombre de bagages : ${luggage}`,
+      '',
+      `🗺️ Waze vers le départ : ${wazeLink}`,
       '',
       'Merci.',
     ].join('\n');
@@ -1295,14 +884,6 @@
     const isLight = document.documentElement.classList.toggle('light');
     document.getElementById('toggle-knob').textContent = isLight ? '☀️' : '🌙';
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    // Update map tiles if map exists
-    if (map) {
-      map.eachLayer(l => { if (l._url) map.removeLayer(l); });
-      const tiles = isLight
-        ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-      L.tileLayer(tiles, { maxZoom: 19 }).addTo(map);
-    }
   }
 
   // Restore saved theme
