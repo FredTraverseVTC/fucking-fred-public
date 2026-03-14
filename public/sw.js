@@ -16,12 +16,8 @@ const PRECACHE_ASSETS = [
 
 // URLs qui ne doivent JAMAIS être cachées (APIs dynamiques)
 const NEVER_CACHE = [
-  '/.netlify/functions/',
-  'nominatim.openstreetmap.org',
+  'api-adresse.data.gouv.fr',
   'router.project-osrm.org',
-  'api.twilio.com',
-  'oauth2.googleapis.com',
-  'www.googleapis.com',
 ];
 
 // ── INSTALLATION ──
