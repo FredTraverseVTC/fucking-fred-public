@@ -831,6 +831,7 @@
       : '[Date]';
 
     const wazeLink = `https://waze.com/ul?q=${encodeURIComponent(from)}&navigate=yes`;
+    const wazeRoute = `https://waze.com/ul?ll=&q=${encodeURIComponent(to)}&from=${encodeURIComponent(from)}&navigate=yes`;
 
     return [
       'Bonjour,',
@@ -844,7 +845,8 @@
       `👥 Nombre de passagers : ${passengers}`,
       `🧳 Nombre de bagages : ${luggage}`,
       '',
-      `🗺️ Waze vers le départ : ${wazeLink}`,
+      `🗺️ Waze départ : ${wazeLink}`,
+      `🗺️ Waze trajet : ${wazeRoute}`,
       '',
       'Merci.',
     ].join('\n');
@@ -1005,7 +1007,6 @@
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
-            <option value="5+">5+</option>
           </select>
         </div>
         <div class="wa-field">
@@ -1015,7 +1016,6 @@
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
-            <option value="4+">4+</option>
           </select>
         </div>
       </div>
