@@ -679,27 +679,32 @@
       letter-spacing: 0.1em; text-align: center;
     }
 
-    /* Suggestions */
-    #autocomplete-dropdown {
-      position: fixed;
-      display: none;
-      background: #1e1e28;
+    /* Autocomplete suggestions */
+    .ac-list {
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      z-index: 100;
+      background: var(--surface);
       border: 1px solid var(--gold);
-      z-index: 99999;
+      border-top: none;
       max-height: 220px;
       overflow-y: auto;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-      min-width: 200px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      -webkit-overflow-scrolling: touch;
     }
-    #autocomplete-dropdown div {
-      padding: 13px 16px; font-size: 13px; font-weight: 300;
-      font-family: 'Outfit', sans-serif; color: var(--white);
-      cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+    .ac-list:empty { display: none; }
+    .ac-item {
+      padding: 13px 16px;
+      font-size: 13px; font-weight: 300;
+      font-family: 'Outfit', sans-serif;
+      color: var(--white);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
       line-height: 1.4;
     }
-    #autocomplete-dropdown div:last-child { border-bottom: none; }
-    #autocomplete-dropdown div:hover { background: rgba(201,169,110,0.15); color: var(--gold); }
-    .suggestions { display: none; }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.active { background: rgba(201,169,110,0.15); color: var(--gold); }
 
     @keyframes riseIn {
       from { opacity: 0; transform: translateY(24px); }
@@ -782,7 +787,6 @@
       </div>
       <div class="input-wrap">
         <input type="text" id="from" placeholder="Ex : Gare Matabiau, Toulouse" autocomplete="off"/>
-        <div class="suggestions hidden" id="from-suggestions"></div>
       </div>
     </div>
 
@@ -797,7 +801,6 @@
       <div class="field-label"><div class="field-dot"></div>Adresse d'arrivée</div>
       <div class="input-wrap">
         <input type="text" id="to" placeholder="Ex : Aéroport Blagnac" autocomplete="off"/>
-        <div class="suggestions hidden" id="to-suggestions"></div>
       </div>
     </div>
 
@@ -895,112 +898,94 @@
 
   let map = null, routeLayer = null, markers = [];
 
-  // ── AUTOCOMPLETE — dropdown global unique ──
-  let acDropdown    = null;
-  let acActiveInput = null;
-  let acTimer       = null;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    acDropdown = document.getElementById('autocomplete-dropdown');
-    setupAutocomplete('from');
-    setupAutocomplete('to');
-
-    // WhatsApp modal: live preview listeners (attached once to avoid leaks)
-    ['wa-from','wa-to','wa-date','wa-time','wa-passengers','wa-luggage'].forEach(id => {
-      document.getElementById(id)?.addEventListener('input', updatePreview);
-      document.getElementById(id)?.addEventListener('change', updatePreview);
-    });
-  });
-
-  function acShow(input) {
-    if (!acDropdown || !input) return;
-    const rect = input.getBoundingClientRect();
-    acDropdown.style.top     = (rect.bottom + 2) + 'px';
-    acDropdown.style.left    = rect.left + 'px';
-    acDropdown.style.width   = rect.width + 'px';
-    acDropdown.style.display = 'block';
-  }
-
-  function acHide() {
-    if (!acDropdown) return;
-    acDropdown.style.display = 'none';
-    acDropdown.innerHTML = '';
-    acActiveInput = null;
-  }
-
+  // ── AUTOCOMPLETE ──
   function setupAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    input.addEventListener('input', () => {
-      clearTimeout(acTimer);
-      delete input.dataset.lat;
-      delete input.dataset.lon;
-      const q = input.value.trim();
-      if (q.length < 2) { acHide(); return; }
-      acTimer = setTimeout(() => fetchSuggestions(q, input), 300);
+    const wrap = input.closest('.input-wrap');
+    if (!wrap) return;
+
+    const list = document.createElement('div');
+    list.className = 'ac-list';
+    wrap.appendChild(list);
+
+    let timer = null;
+    let activeIndex = -1;
+
+    function clearList() { list.innerHTML = ''; activeIndex = -1; }
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      delete this.dataset.lat;
+      delete this.dataset.lon;
+      const q = this.value.trim();
+      if (q.length < 3) { clearList(); return; }
+      timer = setTimeout(function () { fetchSuggestions(q); }, 250);
     });
 
-    input.addEventListener('focus', () => {
-      if (input.value.trim().length >= 2 && acActiveInput === input) {
-        acShow(input);
-      }
+    input.addEventListener('keydown', function (e) {
+      const items = list.querySelectorAll('.ac-item');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex = Math.min(activeIndex + 1, items.length - 1); highlightItem(items); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex = Math.max(activeIndex - 1, 0); highlightItem(items); }
+      else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); items[activeIndex].click(); }
+      else if (e.key === 'Escape') { clearList(); }
     });
 
-    input.addEventListener('blur', () => {
-      // Délai pour laisser le mousedown sur une suggestion s'exécuter
-      setTimeout(acHide, 200);
-    });
-  }
-
-  async function fetchSuggestions(query, input) {
-    acActiveInput = input;
-    try {
-      const url  = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6&autocomplete=1`;
-      const res  = await fetch(url);
-      const data = await res.json();
-
-      if (acActiveInput !== input) return; // input a changé entre temps
-
-      acDropdown.innerHTML = '';
-      if (!data.features?.length) { acHide(); return; }
-
-      data.features.forEach(feature => {
-        const props      = feature.properties;
-        const [lon, lat] = feature.geometry.coordinates;
-        const div        = document.createElement('div');
-        div.textContent  = props.label;
-        div.addEventListener('mousedown', e => {
-          e.preventDefault();
-          input.value       = props.label;
-          input.dataset.lat = String(lat);
-          input.dataset.lon = String(lon);
-          acHide();
-        });
-        acDropdown.appendChild(div);
-      });
-
-      acShow(input);
-    } catch(e) {
-      acHide();
+    function highlightItem(items) {
+      items.forEach(function (el, i) { el.classList.toggle('active', i === activeIndex); });
     }
+
+    function selectItem(label, lat, lon) {
+      input.value = label;
+      input.dataset.lat = String(lat);
+      input.dataset.lon = String(lon);
+      clearList();
+    }
+
+    function fetchSuggestions(query) {
+      var url = 'https://api-adresse.data.gouv.fr/search/?q=' + encodeURIComponent(query) + '&limit=6&autocomplete=1';
+      fetch(url)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          clearList();
+          if (!data.features || !data.features.length) return;
+          data.features.forEach(function (feature) {
+            var props = feature.properties;
+            var coords = feature.geometry.coordinates;
+            var lon = coords[0], lat = coords[1];
+            var item = document.createElement('div');
+            item.className = 'ac-item';
+            item.textContent = props.label;
+            item.addEventListener('pointerdown', function (e) {
+              e.preventDefault();
+              selectItem(props.label, lat, lon);
+            });
+            list.appendChild(item);
+          });
+        })
+        .catch(function (err) {
+          console.error('Autocomplete error:', err);
+          clearList();
+        });
+    }
+
+    document.addEventListener('pointerdown', function (e) {
+      if (!wrap.contains(e.target)) clearList();
+    });
   }
 
-  // Fermer si clic en dehors
-  document.addEventListener('mousedown', e => {
-    if (!acDropdown) return;
-    if (!acDropdown.contains(e.target) && e.target !== acActiveInput) acHide();
-  });
+  setupAutocomplete('from');
+  setupAutocomplete('to');
 
-  // Repositionner au scroll/resize
-  window.addEventListener('scroll', () => {
-    if (acDropdown && acActiveInput && acDropdown.style.display === 'block') acShow(acActiveInput);
-  }, true);
-  window.addEventListener('resize', () => {
-    if (acDropdown && acActiveInput && acDropdown.style.display === 'block') acShow(acActiveInput);
+  // WhatsApp modal: live preview listeners (deferred because WA inputs are later in the DOM)
+  document.addEventListener('DOMContentLoaded', function () {
+    ['wa-from','wa-to','wa-date','wa-time','wa-passengers','wa-luggage'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.addEventListener('input', updatePreview); el.addEventListener('change', updatePreview); }
+    });
   });
-
-  // setupAutocomplete appelé dans DOMContentLoaded
 
   async function calculate() {
     const fromInput = document.getElementById('from');
@@ -1412,9 +1397,6 @@
     document.body.appendChild(b);
   }
 </script>
-
-  <!-- AUTOCOMPLETE DROPDOWN -->
-  <div id="autocomplete-dropdown"></div>
 
   <!-- ── WHATSAPP MODAL ── -->
   <div class="wa-backdrop" id="wa-backdrop" onclick="closeWAModal()"></div>
