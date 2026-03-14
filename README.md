@@ -26,7 +26,9 @@ fred-vtc/
 1. Aller sur https://app.netlify.com
 2. "Add new site" → "Import from Git" → connecter GitHub → choisir "fred-vtc"
 3. Build settings : laissez tout par défaut (netlify.toml s'en charge)
-4. Redéployer le site (Deploys → Trigger deploy)
+4. **Site settings → Environment variables** → Ajouter :
+   - `OWNER_PHONE_NUMBER` = `+33XXXXXXXXX` (numéro de Fred au format international)
+5. Redéployer le site (Deploys → Trigger deploy)
 
 ### Étape 3 — Calendly
 1. Créer un compte sur https://calendly.com
@@ -37,11 +39,11 @@ fred-vtc/
 
 ## Personnalisation
 
-### Remplacer le numéro de Fred
-Dans `public/index.html`, chercher `+33607843493` et `33607843493` et remplacer par le vrai numéro.
+### Numéro de téléphone
+Configuré via la variable d'environnement Netlify `OWNER_PHONE_NUMBER`. Le build injecte automatiquement le numéro dans la page.
 
 ### Remplacer le nom de Fred
-Chercher `Traversfti` dans `public/index.html`.
+Chercher `Traverse` dans `public/index.html`.
 
 ---
 
